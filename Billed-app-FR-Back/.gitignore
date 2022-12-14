@@ -1,3 +1,5 @@
 database_test.sqlite
 node_modules/
 coverage/
+database_dev.sqlite
+public/
