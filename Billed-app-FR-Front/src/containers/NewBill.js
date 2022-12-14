@@ -15,9 +15,23 @@ export default class NewBill {
     this.billId = null
     new Logout({ document, localStorage, onNavigate })
   }
+
+  handleFileType({target: fileInput}, file){
+    const { type } = file
+    fileInput.setCustomValidity("")
+    if(/^image\/(jpe?g|png)$/.test(type) === false){
+      fileInput.setCustomValidity("Formats acceptés : jpg, jpeg et png")
+      fileInput.reportValidity()
+      fileInput.value = null
+      return false
+    }
+  }
+
   handleChangeFile = e => {
     e.preventDefault()
     const file = this.document.querySelector(`input[data-testid="file"]`).files[0]
+    const isFileTypeValid = this.handleFileType(e, file)
+    if(isFileTypeValid === false) return
     const filePath = e.target.value.split(/\\/g)
     const fileName = filePath[filePath.length-1]
     const formData = new FormData()
