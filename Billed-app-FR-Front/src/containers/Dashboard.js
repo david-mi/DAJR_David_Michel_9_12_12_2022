@@ -35,7 +35,7 @@ export const card = (bill) => {
   firstAndLastNames.split('.')[1] : firstAndLastNames
 
   return (`
-    <div class='bill-card' id='open-bill${bill.id}' data-testid='open-bill${bill.id}' data-active='false'>
+    <div class='bill-card' id='open-bill${bill.id}' data-testid='open-bill${bill.id}'>
       <div class='bill-card-name-container'>
         <div class='bill-card-name'> ${firstName} ${lastName} </div>
         <span class='bill-card-grey'> ... </span>
@@ -86,23 +86,16 @@ export default class {
   }
 
   handleEditTicket(e, bill, bills) {
+    if (this.counter === undefined || this.id !== bill.id) this.counter = 0
     if (this.id === undefined || this.id !== bill.id) this.id = bill.id
-
-    const previouslyClickedCard = this.document.querySelector('.bill-card[data-active="true"]')
-    if(previouslyClickedCard && previouslyClickedCard !== e.currentTarget){
-      previouslyClickedCard.dataset.active = false
-    }
-
-    const isClickedCardActive = JSON.parse(e.currentTarget.dataset.active)
-    e.currentTarget.dataset.active = !isClickedCardActive
-
-    if (isClickedCardActive === false) {
+    if (this.counter % 2 === 0) {
       bills.forEach(b => {
         $(`#open-bill${b.id}`).css({ background: '#0D5AE5' })
       })
       $(`#open-bill${bill.id}`).css({ background: '#2A2B35' })
       $('.dashboard-right-container div').html(DashboardFormUI(bill))
       $('.vertical-navbar').css({ height: '150vh' })
+      this.counter ++
     } else {
       $(`#open-bill${bill.id}`).css({ background: '#0D5AE5' })
 
@@ -110,6 +103,7 @@ export default class {
         <div id="big-billed-icon" data-testid="big-billed-icon"> ${BigBilledIcon} </div>
       `)
       $('.vertical-navbar').css({ height: '120vh' })
+      this.counter ++
     }
     $('#icon-eye-d').click(this.handleClickIconEye)
     $('#btn-accept-bill').click((e) => this.handleAcceptSubmit(e, bill))
@@ -137,24 +131,23 @@ export default class {
   }
 
   handleShowTickets(e, bills, index) {
+    if (this.counter === undefined || this.index !== index) this.counter = 0
     if (this.index === undefined || this.index !== index) this.index = index
-
-    const isMenuOpen = JSON.parse(e.currentTarget.dataset.open)
-    e.currentTarget.dataset.open = !isMenuOpen
-
-    if (isMenuOpen === false) {
+    if (this.counter % 2 === 0) {
       $(`#arrow-icon${this.index}`).css({ transform: 'rotate(0deg)'})
-      $(`#status-bills-container${this.index}`)
-        .html(cards(filteredBills(bills, getStatus(this.index))))
 
-      bills.forEach(bill => {
-        $(`#status-bills-container${this.index} #open-bill${bill.id}`)
-        .click((e) => this.handleEditTicket(e, bill, bills))
+      const filteredBillsArray = filteredBills(bills, getStatus(this.index))
+      $(`#status-bills-container${this.index}`).html(cards(filteredBillsArray))
+      filteredBillsArray.forEach(bill => {
+        $(`#open-bill${bill.id}`).click((e) => this.handleEditTicket(e, bill, bills))
       })
+
+      this.counter ++
     } else {
       $(`#arrow-icon${this.index}`).css({ transform: 'rotate(90deg)'})
       $(`#status-bills-container${this.index}`)
         .html("")
+      this.counter ++
     }
 
     return bills
