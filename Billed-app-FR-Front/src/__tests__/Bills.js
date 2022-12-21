@@ -13,6 +13,7 @@ import {localStorageMock} from "../__mocks__/localStorage.js";
 import store from "../__mocks__/store.js";
 import router from "../app/Router.js";
 import userEvent from "@testing-library/user-event";
+import ErrorPage from "../views/ErrorPage.js";
 
 beforeAll(() => {
   Object.defineProperty(window, 'localStorage', { value: localStorageMock })
@@ -95,22 +96,18 @@ describe("Given I instantiate Bills container with mocked store containing valid
 describe("Given I instantiate Bills container with mocked store containing non formatable date", () => {
   describe("When i am calling getBills method", () => {
     test("Then it should return mapped bills with formated status and untouched date", async () => {
-      const storeMock = {
-        bills(){
-          return {
-            list(){
-              return Promise.resolve([{
-                "id": "43225ddsf6fIm2zOKkLzMro",
-                "status": "pending",
-                "date": "wrong_date_example"
-              }])
-            }
-          }
-        }
-      }
+      const resolvedBillsListValueWithWrongDate = [{
+        "id": "43225ddsf6fIm2zOKkLzMro",
+        "status": "pending",
+        "date": "wrong_date_example"
+      }]
+
+      jest.spyOn(store.bills(), "list").mockResolvedValueOnce(resolvedBillsListValueWithWrongDate)
   
-      const bills = new Bills({ document, onNavigate, store: storeMock, localStorage })
+      const bills = new Bills({ document, onNavigate, store, localStorage })
       const formatedBills = await bills.getBills()
+
+      expect(store.bills().list).toBeCalled()
       expect(formatedBills[0].date).toBe("wrong_date_example")
       expect(formatedBills[0].status).toBe("En attente")
     })
@@ -124,6 +121,28 @@ describe("Given I instantiate Bills container with undefined store", () => {
       expect(bills.getBills).not.toThrowError()
       const formatedBills = await bills.getBills()
       expect(formatedBills).toBeUndefined()
+    })
+  })
+})
+
+describe("Given i'm on dashboard page", () => {
+  describe("When i'm refreshing the page and my authentification token is no longer valid", () => {
+    test("Then it should display the error page with the correct error message", async () => {
+      const bills = new Bills({ document, onNavigate, store, localStorage })
+      const authErrorMockMessage = "user not allowed! you should clear your localstorage and retry!"
+      jest.spyOn(bills, "getBills").mockImplementationOnce(() => {
+        throw new Error(authErrorMockMessage)
+      })
+
+      expect(bills.getBills).toThrowError()
+
+      try{
+        await bills.getBills()
+      } catch(error){
+        expect(BillsUI({ error })).toMatchSnapshot(ErrorPage(error))
+        document.body.innerHTML = BillsUI({ error })
+        expect(screen.findByText(authErrorMockMessage)).toBeTruthy()
+      }
     })
   })
 })
