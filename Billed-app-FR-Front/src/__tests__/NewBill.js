@@ -107,3 +107,41 @@ describe("Given I am connected as an employee", () => {
     })  
   })
 })
+
+describe("Given when my authentification token is invalid or undefined and i'm on NewBill page", () => {
+  describe("When I am trying to send a valid form", () => {
+    beforeAll( async () => {
+      const html = NewBillUI()
+      document.body.innerHTML = html
+      const onNavigate = (pathname) => {
+        document.body.innerHTML = ROUTES({ pathname });
+      };
+      new NewBill({ document, onNavigate, store, localStorageMock })
+      Object.defineProperty(window, 'localStorage', { value: localStorageMock })
+      window.localStorage.clear()
+      window.localStorage.setItem("user", JSON.stringify({
+        email: "employee@test.tld"
+      }))
+
+      await userEvent.type(screen.getByTestId("expense-name"), "Nouvelle facture")
+      screen.getByTestId("datepicker").value = "2020-12-15"         
+      await userEvent.type(screen.getByTestId("amount"), "300")         
+      await userEvent.type(screen.getByTestId("vat"), "20")         
+      await userEvent.type(screen.getByTestId("pct"), "5")         
+      userEvent.upload(screen.getByTestId("file"), new File(['test'], 'test.jpg', {type: "image/jpg"}))
+    })
+
+    test("Then when submiting form, console.error should be called with 'user must be authenticated' Error object", async () => {
+      const submitButton = screen.getByText("Envoyer")
+      const authErrorMock = new Error ("user must be authenticated")
+      jest.spyOn(store.bills(), "update").mockRejectedValueOnce(authErrorMock)
+      const consoleErrorSpy = jest.spyOn(console, "error")
+      userEvent.click(submitButton)
+      expect(store.bills().update).toHaveBeenCalled()
+
+      await waitFor(() => {
+        expect(consoleErrorSpy).toHaveBeenCalledWith(authErrorMock)
+      })
+    })
+  })
+})
