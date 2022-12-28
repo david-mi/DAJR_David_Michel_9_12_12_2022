@@ -108,9 +108,9 @@ describe("Given I am connected as an employee", () => {
   })
 })
 
-describe("Given when my authentification token is invalid or undefined and i'm on NewBill page", () => {
-  describe("When I am trying to send a valid form", () => {
-    beforeAll( async () => {
+describe("Given i'm on NewBill page", () => {
+  describe("When i'm submiting valid form and api error occurs", () => {
+    beforeEach( async () => {
       const html = NewBillUI()
       document.body.innerHTML = html
       const onNavigate = (pathname) => {
@@ -131,9 +131,35 @@ describe("Given when my authentification token is invalid or undefined and i'm o
       userEvent.upload(screen.getByTestId("file"), new File(['test'], 'test.jpg', {type: "image/jpg"}))
     })
 
-    test("Then when submiting form, console.error should be called with 'user must be authenticated' Error object", async () => {
+    test("Then console.error should be called with 'Error 401", async () => {
       const submitButton = screen.getByText("Envoyer")
-      const authErrorMock = new Error ("user must be authenticated")
+      const authErrorMock = new Error ("Error 401")
+      jest.spyOn(store.bills(), "update").mockRejectedValueOnce(authErrorMock)
+      const consoleErrorSpy = jest.spyOn(console, "error")
+      userEvent.click(submitButton)
+      expect(store.bills().update).toHaveBeenCalled()
+
+      await waitFor(() => {
+        expect(consoleErrorSpy).toHaveBeenCalledWith(authErrorMock)
+      })
+    })
+
+    test("Then console.error should be called with 'Error 404", async () => {
+      const submitButton = screen.getByText("Envoyer")
+      const authErrorMock = new Error ("Error 404")
+      jest.spyOn(store.bills(), "update").mockRejectedValueOnce(authErrorMock)
+      const consoleErrorSpy = jest.spyOn(console, "error")
+      userEvent.click(submitButton)
+      expect(store.bills().update).toHaveBeenCalled()
+
+      await waitFor(() => {
+        expect(consoleErrorSpy).toHaveBeenCalledWith(authErrorMock)
+      })
+    })
+
+    test("Then console.error should be called with 'Error 500", async () => {
+      const submitButton = screen.getByText("Envoyer")
+      const authErrorMock = new Error ("Error 500")
       jest.spyOn(store.bills(), "update").mockRejectedValueOnce(authErrorMock)
       const consoleErrorSpy = jest.spyOn(console, "error")
       userEvent.click(submitButton)
