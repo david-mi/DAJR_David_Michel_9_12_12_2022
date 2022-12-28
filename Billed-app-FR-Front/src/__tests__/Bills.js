@@ -126,17 +126,56 @@ describe("Given I instantiate Bills container with undefined store", () => {
 })
 
 describe("Given i'm on dashboard page", () => {
-  describe("When i'm refreshing the page and my authentification token is no longer valid", () => {
-    test("Then it should display the error page with the correct error message", async () => {
-      const bills = new Bills({ document, onNavigate, store, localStorage })
-      const authErrorMockMessage = "user not allowed! you should clear your localstorage and retry!"
+  describe("When server is failing to return bills", () => {
+    let bills = null
+
+    beforeEach(() => {
+      bills = new Bills({ document, onNavigate, store, localStorage })
+    })
+  
+    test("Then it should display the error page with 'Error 401'", async () => {
+      const authErrorMockMessage = "Error 401 : user not allowed! you should clear your localstorage and retry!"
       jest.spyOn(bills, "getBills").mockImplementationOnce(() => {
         throw new Error(authErrorMockMessage)
       })
 
       expect(bills.getBills).toThrowError()
 
-      try{
+      try {
+        await bills.getBills()
+      } catch(error){
+        expect(BillsUI({ error })).toMatchSnapshot(ErrorPage(error))
+        document.body.innerHTML = BillsUI({ error })
+        expect(screen.findByText(authErrorMockMessage)).toBeTruthy()
+      }
+    })
+
+    test("Then it should display the error page with 'Error 404'", async () => {
+      const authErrorMockMessage = "Error 404"
+      jest.spyOn(bills, "getBills").mockImplementationOnce(() => {
+        throw new Error(authErrorMockMessage)
+      })
+
+      expect(bills.getBills).toThrowError()
+
+      try {
+        await bills.getBills()
+      } catch(error){
+        expect(BillsUI({ error })).toMatchSnapshot(ErrorPage(error))
+        document.body.innerHTML = BillsUI({ error })
+        expect(screen.findByText(authErrorMockMessage)).toBeTruthy()
+      }
+    })
+
+    test("Then it should display the error page with 'Error 500'", async () => {
+      const authErrorMockMessage = "Error 500"
+      jest.spyOn(bills, "getBills").mockImplementationOnce(() => {
+        throw new Error(authErrorMockMessage)
+      })
+
+      expect(bills.getBills).toThrowError()
+
+      try {
         await bills.getBills()
       } catch(error){
         expect(BillsUI({ error })).toMatchSnapshot(ErrorPage(error))
@@ -146,3 +185,4 @@ describe("Given i'm on dashboard page", () => {
     })
   })
 })
+
