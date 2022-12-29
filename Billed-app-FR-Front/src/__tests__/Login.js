@@ -5,7 +5,8 @@
 import LoginUI from "../views/LoginUI";
 import Login from "../containers/Login.js";
 import { ROUTES } from "../constants/routes";
-import { fireEvent, screen } from "@testing-library/dom";
+import { fireEvent, screen, waitFor } from "@testing-library/dom";
+import { localStorageMock } from "../__mocks__/localStorage";
 
 describe("Given that I am a user on login page", () => {
   describe("When I do not fill fields and I click on employee button Login In", () => {
@@ -225,6 +226,56 @@ describe("Given that I am a user on login page", () => {
 
     test("It should renders HR dashboard page", () => {
       expect(screen.queryByText("Validations")).toBeTruthy();
+    });
+  });
+
+  describe("When I do fill employee fields in correct format, but employee is not existing and I click on admin button Login In", () => {
+
+    test("Then a new employee account should be created", async () => {
+      document.body.innerHTML = LoginUI();
+      const inputData = {
+        type: "Employee",
+        email: "test@email.com",
+        password: "azerty",
+        status: "connected",
+      };
+
+      const inputEmailUser = screen.getByTestId("employee-email-input");
+      fireEvent.change(inputEmailUser, { target: { value: inputData.email } });
+      expect(inputEmailUser.value).toBe(inputData.email);
+
+      const inputPasswordUser = screen.getByTestId("employee-password-input");
+      fireEvent.change(inputPasswordUser, {
+        target: { value: inputData.password },
+      });
+      expect(inputPasswordUser.value).toBe(inputData.password);
+
+      const form = screen.getByTestId("form-employee");
+
+      const onNavigate = (pathname) => {
+        document.body.innerHTML = ROUTES({ pathname });
+      };
+
+      let PREVIOUS_LOCATION = "";
+
+      const store = jest.fn();
+
+      const login = new Login({
+        document,
+        localStorage: localStorageMock,
+        onNavigate,
+        PREVIOUS_LOCATION,
+        store,
+      });
+
+      jest.spyOn(login, "login").mockRejectedValue(() => "user not existing !");
+      jest.spyOn(login, "createUser").mockResolvedValue({})
+      fireEvent.submit(form);
+      
+      await waitFor(() => {
+        expect(login.login).toHaveBeenCalled();
+        expect(login.createUser).toHaveBeenCalledWith(inputData);
+      })
     });
   });
 });
