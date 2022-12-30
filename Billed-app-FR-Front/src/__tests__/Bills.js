@@ -10,10 +10,12 @@ import { bills } from "../fixtures/bills.js"
 import { ROUTES_PATH} from "../constants/routes.js";
 import { ROUTES } from "../constants/routes.js"
 import {localStorageMock} from "../__mocks__/localStorage.js";
-import store from "../__mocks__/store.js";
+import mockStore from "../__mocks__/store.js";
 import router from "../app/Router.js";
 import userEvent from "@testing-library/user-event";
 import ErrorPage from "../views/ErrorPage.js";
+
+jest.mock("../app/store", () => mockStore)
 
 beforeAll(() => {
   Object.defineProperty(window, 'localStorage', { value: localStorageMock })
@@ -49,7 +51,7 @@ describe("Given I am connected as an employee", () => {
       const onNavigate = (pathname) => {
         document.body.innerHTML = ROUTES({ pathname });
       };
-      new Bills({ document, onNavigate, store, localStorage })
+      new Bills({ document, onNavigate, store: mockStore, localStorage })
       const eyesIcons = screen.getAllByTestId("icon-eye")
       const firstEyesIcon = eyesIcons[0]
       userEvent.click(firstEyesIcon)
@@ -59,7 +61,7 @@ describe("Given I am connected as an employee", () => {
 
     test("Then displayed image should have same src as first data from mock", async () => {
       const screenPicture = await screen.findByTestId("billpicture")
-      const firstStoreItem = await store.bills().list()
+      const firstStoreItem = await mockStore.bills().list()
       const convertedFirstStoreItemUrl = new URL(firstStoreItem[0].fileUrl).href
       expect(screenPicture.src).toBe(convertedFirstStoreItemUrl)
     })
@@ -76,7 +78,7 @@ describe("Given I am connected as an employee", () => {
 describe("Given I instantiate Bills container with mocked store containing valid dates", () => {
   describe("When i am calling getBills method", () => {
     test("Then it should return mapped bills with formated date and status", async () => {
-      const bills = new Bills({ document, onNavigate, store, localStorage })
+      const bills = new Bills({ document, onNavigate, store: mockStore, localStorage })
       const formatedBills = await bills.getBills()
       expect(formatedBills[0].date).toBe("4 Avr. 04")
       expect(formatedBills[0].status).toBe("En attente")
@@ -102,86 +104,78 @@ describe("Given I instantiate Bills container with mocked store containing non f
         "date": "wrong_date_example"
       }]
 
-      jest.spyOn(store.bills(), "list").mockResolvedValueOnce(resolvedBillsListValueWithWrongDate)
+      jest.spyOn(mockStore.bills(), "list").mockResolvedValueOnce(resolvedBillsListValueWithWrongDate)
   
-      const bills = new Bills({ document, onNavigate, store, localStorage })
+      const bills = new Bills({ document, onNavigate, store: mockStore, localStorage })
       const formatedBills = await bills.getBills()
 
-      expect(store.bills().list).toBeCalled()
+      expect(mockStore.bills().list).toBeCalled()
       expect(formatedBills[0].date).toBe("wrong_date_example")
       expect(formatedBills[0].status).toBe("En attente")
     })
   })
 })
 
-describe("Given I instantiate Bills container with undefined store", () => {
-  describe("When i am calling getBills method", () => {
-    test("Then it should return undefined and not throw error", async () => {
-      const bills = new Bills({ document, onNavigate, undefined, localStorage })
-      expect(bills.getBills).not.toThrowError()
-      const formatedBills = await bills.getBills()
-      expect(formatedBills).toBeUndefined()
+describe("Given I am connected on Bills page as an Employee", () => {
+  describe("When bills are trying to be fetched from Api", () => {  
+    beforeAll(() => {
+      jest.spyOn(mockStore.bills(), "list")
     })
-  })
-})
-
-describe("Given i'm on dashboard page", () => {
-  describe("When server is failing to return bills", () => {
-    let bills = null
 
     beforeEach(() => {
-      bills = new Bills({ document, onNavigate, store, localStorage })
+      localStorage.setItem("user", JSON.stringify({ type: "Employee", email: "a@a" }));
+      const root = '<div id="root"></div>'
+      document.body.innerHTML = root
+      router()
+    })
+
+    test("Then bills data should be returned and displayed", async () => {
+      window.onNavigate(ROUTES_PATH.Bills)
+      await waitFor(() => {
+        expect(mockStore.bills().list).toHaveBeenCalled()
+        expect(document.querySelectorAll("tbody tr").length).toBe(4)
+
+        expect(screen.getByText("encore")).toBeTruthy()
+        expect(screen.getByText("test1")).toBeTruthy()
+        expect(screen.getByText("test2")).toBeTruthy()
+        expect(screen.getByText("test3")).toBeTruthy()
+      })
     })
   
-    test("Then it should display the error page with 'Error 401'", async () => {
-      const authErrorMockMessage = "Error 401 : user not allowed! you should clear your localstorage and retry!"
-      jest.spyOn(bills, "getBills").mockImplementationOnce(() => {
-        throw new Error(authErrorMockMessage)
+    test("Then fetch should fail with a 500 message error displayed to the DOM", async () => {
+      const authErrorMock = new Error("Erreur 500")
+      jest.spyOn(mockStore.bills(), "list").mockRejectedValueOnce(authErrorMock)
+  
+      window.onNavigate(ROUTES_PATH.Bills)
+  
+      await waitFor(() => {
+        expect(screen.getByText(/Erreur 500/)).toBeTruthy()
+        expect(document.body).toMatchSnapshot(ErrorPage(authErrorMock))
       })
-
-      expect(bills.getBills).toThrowError()
-
-      try {
-        await bills.getBills()
-      } catch(error){
-        expect(BillsUI({ error })).toMatchSnapshot(ErrorPage(error))
-        document.body.innerHTML = BillsUI({ error })
-        expect(screen.findByText(authErrorMockMessage)).toBeTruthy()
-      }
     })
-
-    test("Then it should display the error page with 'Error 404'", async () => {
-      const authErrorMockMessage = "Error 404"
-      jest.spyOn(bills, "getBills").mockImplementationOnce(() => {
-        throw new Error(authErrorMockMessage)
+  
+    test("Then fetch should fail with a 401 message error displayed to the DOM", async () => {
+      const authErrorMock = new Error("Erreur 401")
+      jest.spyOn(mockStore.bills(), "list").mockRejectedValueOnce(authErrorMock)
+  
+      window.onNavigate(ROUTES_PATH.Bills)
+  
+      await waitFor(() => {
+        expect(screen.getByText(/Erreur 401/)).toBeTruthy()
+        expect(document.body).toMatchSnapshot(ErrorPage(authErrorMock))
       })
-
-      expect(bills.getBills).toThrowError()
-
-      try {
-        await bills.getBills()
-      } catch(error){
-        expect(BillsUI({ error })).toMatchSnapshot(ErrorPage(error))
-        document.body.innerHTML = BillsUI({ error })
-        expect(screen.findByText(authErrorMockMessage)).toBeTruthy()
-      }
     })
-
-    test("Then it should display the error page with 'Error 500'", async () => {
-      const authErrorMockMessage = "Error 500"
-      jest.spyOn(bills, "getBills").mockImplementationOnce(() => {
-        throw new Error(authErrorMockMessage)
+  
+    test("Then fetch should fail with a 400 message error displayed to the DOM", async () => {
+      const authErrorMock = new Error("Erreur 400")
+      jest.spyOn(mockStore.bills(), "list").mockRejectedValueOnce(authErrorMock)
+  
+      window.onNavigate(ROUTES_PATH.Bills)
+  
+      await waitFor(() => {
+        expect(screen.getByText(/Erreur 400/)).toBeTruthy()
+        expect(document.body).toMatchSnapshot(ErrorPage(authErrorMock))
       })
-
-      expect(bills.getBills).toThrowError()
-
-      try {
-        await bills.getBills()
-      } catch(error){
-        expect(BillsUI({ error })).toMatchSnapshot(ErrorPage(error))
-        document.body.innerHTML = BillsUI({ error })
-        expect(screen.findByText(authErrorMockMessage)).toBeTruthy()
-      }
     })
   })
 })
