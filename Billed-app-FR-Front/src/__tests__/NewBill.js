@@ -3,7 +3,7 @@
  */
 
 import '@testing-library/jest-dom/extend-expect'
-import { fireEvent, getByTestId, screen, wait, waitFor } from "@testing-library/dom"
+import { screen, waitFor } from "@testing-library/dom"
 import NewBillUI from "../views/NewBillUI.js"
 import NewBill from "../containers/NewBill.js"
 import store from "../__mocks__/store.js"
@@ -108,7 +108,7 @@ describe("Given I am connected as an employee", () => {
   })
 })
 
-describe("Given i'm on NewBill page", () => {
+describe("Given i'm on NewBill page, connecte as en Employee", () => {
   describe("When i'm submiting valid form and api error occurs", () => {
     beforeEach( async () => {
       const html = NewBillUI()
