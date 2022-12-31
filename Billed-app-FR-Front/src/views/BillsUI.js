@@ -23,7 +23,7 @@ const rows = (data) => {
   return (data && data.length) 
   ? [...data]
     .sort((a, b) => {
-      return new Date(a.date) < new Date(b.date) 
+      return new Date(a.originalDate) < new Date(b.originalDate) 
         ? 1 
         : -1
     })
