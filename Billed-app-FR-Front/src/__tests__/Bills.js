@@ -80,16 +80,16 @@ describe("Given I instantiate Bills container with mocked store containing valid
     test("Then it should return mapped bills with formated date and status", async () => {
       const bills = new Bills({ document, onNavigate, store: mockStore, localStorage })
       const formatedBills = await bills.getBills()
-      expect(formatedBills[0].date).toBe("4 Avr. 04")
+      expect(formatedBills[0].formatedDate).toBe("4 Avr. 04")
       expect(formatedBills[0].status).toBe("En attente")
   
-      expect(formatedBills[1].date).toBe("1 Jan. 01")
+      expect(formatedBills[1].formatedDate).toBe("1 Jan. 01")
       expect(formatedBills[1].status).toBe("Refused")
   
-      expect(formatedBills[2].date).toBe("3 Mar. 03")
+      expect(formatedBills[2].formatedDate).toBe("3 Mar. 03")
       expect(formatedBills[2].status).toBe("Accepté")
   
-      expect(formatedBills[3].date).toBe("2 Fév. 02")
+      expect(formatedBills[3].formatedDate).toBe("2 Fév. 02")
       expect(formatedBills[3].status).toBe("Refused")
     })
   })
