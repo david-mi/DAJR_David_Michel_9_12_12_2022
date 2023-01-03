@@ -75,11 +75,13 @@ describe("Given I am connected as an employee", () => {
       expect(commentaryTextArea).toBeValid()
     })
 
-    test("Then it should upload gif file to file input", () => {
-      const fileInput = screen.getByTestId("file")
-      const fakeGifFile = new File(['randomGif'], 'test.gif', {type: 'image/gif'})
-      userEvent.upload(fileInput, fakeGifFile);
-      expect(fileInput.files[0]).toBe(fakeGifFile)
+    describe("When I am on NewBill Page and I choose a file with an incorret extension", () => {
+      test("Then it should display error message", () => {
+        const fileInput = screen.getByTestId("file")
+        const fakeGifFile = new File(['randomGif'], 'test.gif', {type: 'image/gif'})
+        userEvent.upload(fileInput, fakeGifFile);
+        expect(fileInput.files[0]).toBe(fakeGifFile)
+      })
     })
 
     test("Then form should be invalid", () => {
@@ -93,11 +95,13 @@ describe("Given I am connected as an employee", () => {
       expect(screen.getByText("Envoyer une note de frais")).toBeTruthy()
     })
 
-    test("Then it should upload png file to file input",  () => {
-      const fakePngFile = new File(['test'], 'test.jpg', {type: "image/jpg"})
-      const fileInput = screen.getByTestId("file")
-      userEvent.upload(fileInput, fakePngFile)
-      expect(fileInput.files[0]).toBe(fakePngFile)
+    describe("When I am on NewBill Page and I choose a file with a correct extension", () =>{
+      test("Then it should upload jpg file to file input",  () => {
+        const fakePngFile = new File(['test'], 'test.jpg', {type: "image/jpg"})
+        const fileInput = screen.getByTestId("file")
+        userEvent.upload(fileInput, fakePngFile)
+        expect(fileInput.files[0]).toBe(fakePngFile)
+      })
     })
 
     test("Then it should submit form and user send back to bill page", () => {
@@ -106,9 +110,7 @@ describe("Given I am connected as an employee", () => {
       screen.getByTestId("btn-new-bill")
     })  
   })
-})
 
-describe("Given i'm on NewBill page, connecte as en Employee", () => {
   describe("When i'm submiting valid form and api error occurs", () => {
     beforeEach( async () => {
       const html = NewBillUI()
