@@ -166,8 +166,8 @@ describe("Given I am connected on Bills page as an Employee", () => {
       })
     })
   
-    test("Then fetch should fail with a 400 message error displayed to the DOM", async () => {
-      const authErrorMock = new Error("Erreur 400")
+    test("Then fetch should fail with a 404 message error displayed to the DOM", async () => {
+      const authErrorMock = new Error("Erreur 404")
       jest.spyOn(mockStore.bills(), "list").mockRejectedValueOnce(authErrorMock)
   
       window.onNavigate(ROUTES_PATH.Bills)
