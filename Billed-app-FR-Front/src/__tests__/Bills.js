@@ -26,6 +26,10 @@ beforeAll(() => {
   }))
 })
 
+afterEach(() => {
+  jest.clearAllMocks()
+})
+
 describe("Given I am connected as an employee", () => {
   describe("When I am on Bills Page", () => {
     test("Then bill icon in vertical layout should be highlighted", async () => {
@@ -91,7 +95,7 @@ describe("Given I am connected as an employee", () => {
       })
     })
 
-    describe("When I am on Bills Page and I click on the icon eye", () => {
+    describe("When I click on the icon eye", () => {
       test("Then a modal should open", async () => {
         const onNavigate = (pathname) => {
           document.body.innerHTML = ROUTES({ pathname });
@@ -104,69 +108,67 @@ describe("Given I am connected as an employee", () => {
         expect(dialog).toBeVisible()
       })
     })
-  })
-})
 
-describe("Given I am connected on Bills page as an Employee", () => {
-  describe("When bills are trying to be fetched from Api", () => {  
-    beforeAll(() => {
-      jest.spyOn(mockStore.bills(), "list")
-    })
-
-    beforeEach(() => {
-      localStorage.setItem("user", JSON.stringify({ type: "Employee", email: "a@a" }));
-      const root = '<div id="root"></div>'
-      document.body.innerHTML = root
-      router()
-    })
-
-    test("Then bills data should be returned and displayed", async () => {
-      window.onNavigate(ROUTES_PATH.Bills)
-      await waitFor(() => {
-        expect(mockStore.bills().list).toHaveBeenCalled()
-        expect(document.querySelectorAll("tbody tr").length).toBe(4)
-
-        expect(screen.getByText("encore")).toBeTruthy()
-        expect(screen.getByText("test1")).toBeTruthy()
-        expect(screen.getByText("test2")).toBeTruthy()
-        expect(screen.getByText("test3")).toBeTruthy()
+    describe("When bills are being fetched from Api", () => {  
+      beforeAll(() => {
+        jest.spyOn(mockStore.bills(), "list")
       })
-    })
-  
-    describe("When an error occurs on api", () => {
-      test("Then fetch should fail with a 500 message error displayed to the DOM", async () => {
-        const authErrorMock = new Error("Erreur 500")
-        jest.spyOn(mockStore.bills(), "list").mockRejectedValueOnce(authErrorMock)
     
+      beforeEach(() => {
+        localStorage.setItem("user", JSON.stringify({ type: "Employee", email: "a@a" }));
+        const root = '<div id="root"></div>'
+        document.body.innerHTML = root
+        router()
+      })
+    
+      test("Then bills data should be returned and displayed", async () => {
         window.onNavigate(ROUTES_PATH.Bills)
-    
         await waitFor(() => {
-          expect(screen.getByText(/Erreur 500/)).toBeTruthy()
-          expect(document.body).toMatchSnapshot(ErrorPage(authErrorMock))
+          expect(mockStore.bills().list).toHaveBeenCalled()
+          expect(document.querySelectorAll("tbody tr").length).toBe(4)
+    
+          expect(screen.getByText("encore")).toBeTruthy()
+          expect(screen.getByText("test1")).toBeTruthy()
+          expect(screen.getByText("test2")).toBeTruthy()
+          expect(screen.getByText("test3")).toBeTruthy()
         })
       })
     
-      test("Then fetch should fail with a 401 message error displayed to the DOM", async () => {
-        const authErrorMock = new Error("Erreur 401")
-        jest.spyOn(mockStore.bills(), "list").mockRejectedValueOnce(authErrorMock)
-    
-        window.onNavigate(ROUTES_PATH.Bills)
-    
-        await waitFor(() => {
-          expect(screen.getByText(/Erreur 401/)).toBeTruthy()
-          expect(document.body).toMatchSnapshot(ErrorPage(authErrorMock))
+      describe("When an error occurs on api", () => {
+        test("Then fetch should fail with a 500 message error displayed to the DOM", async () => {
+          const authErrorMock = new Error("Erreur 500")
+          jest.spyOn(mockStore.bills(), "list").mockRejectedValueOnce(authErrorMock)
+      
+          window.onNavigate(ROUTES_PATH.Bills)
+      
+          await waitFor(() => {
+            expect(screen.getByText(/Erreur 500/)).toBeTruthy()
+            expect(document.body).toMatchSnapshot(ErrorPage(authErrorMock))
+          })
         })
-      })
-    
-      test("Then fetch should fail with a 404 message error displayed to the DOM", async () => {
-        const authErrorMock = new Error("Erreur 404")
-        jest.spyOn(mockStore.bills(), "list").mockRejectedValueOnce(authErrorMock)
-    
-        window.onNavigate(ROUTES_PATH.Bills)
-    
-        await waitFor(() => {
-          expect(screen.getByText(/Erreur 404/)).toBeTruthy()
-          expect(document.body).toMatchSnapshot(ErrorPage(authErrorMock))
+      
+        test("Then fetch should fail with a 401 message error displayed to the DOM", async () => {
+          const authErrorMock = new Error("Erreur 401")
+          jest.spyOn(mockStore.bills(), "list").mockRejectedValueOnce(authErrorMock)
+      
+          window.onNavigate(ROUTES_PATH.Bills)
+      
+          await waitFor(() => {
+            expect(screen.getByText(/Erreur 401/)).toBeTruthy()
+            expect(document.body).toMatchSnapshot(ErrorPage(authErrorMock))
+          })
+        })
+      
+        test("Then fetch should fail with a 404 message error displayed to the DOM", async () => {
+          const authErrorMock = new Error("Erreur 404")
+          jest.spyOn(mockStore.bills(), "list").mockRejectedValueOnce(authErrorMock)
+      
+          window.onNavigate(ROUTES_PATH.Bills)
+      
+          await waitFor(() => {
+            expect(screen.getByText(/Erreur 404/)).toBeTruthy()
+            expect(document.body).toMatchSnapshot(ErrorPage(authErrorMock))
+          })
         })
       })
     })

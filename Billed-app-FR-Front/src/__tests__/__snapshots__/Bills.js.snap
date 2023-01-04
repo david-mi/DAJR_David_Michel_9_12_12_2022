@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Given I am connected on Bills page as an Employee When bills are trying to be fetched from Api When an error occurs on api Then fetch should fail with a 401 message error displayed to the DOM: 
+exports[`Given I am connected as an employee When I am on Bills Page When bills are being fetched from Api When an error occurs on api Then fetch should fail with a 401 message error displayed to the DOM: 
     <div class='layout'>
       
         <div class='vertical-navbar' style='height: undefinedvh;'>
@@ -356,7 +356,7 @@ exports[`Given I am connected on Bills page as an Employee When bills are trying
 </body>
 `;
 
-exports[`Given I am connected on Bills page as an Employee When bills are trying to be fetched from Api When an error occurs on api Then fetch should fail with a 404 message error displayed to the DOM: 
+exports[`Given I am connected as an employee When I am on Bills Page When bills are being fetched from Api When an error occurs on api Then fetch should fail with a 404 message error displayed to the DOM: 
     <div class='layout'>
       
         <div class='vertical-navbar' style='height: undefinedvh;'>
@@ -712,7 +712,7 @@ exports[`Given I am connected on Bills page as an Employee When bills are trying
 </body>
 `;
 
-exports[`Given I am connected on Bills page as an Employee When bills are trying to be fetched from Api When an error occurs on api Then fetch should fail with a 500 message error displayed to the DOM: 
+exports[`Given I am connected as an employee When I am on Bills Page When bills are being fetched from Api When an error occurs on api Then fetch should fail with a 500 message error displayed to the DOM: 
     <div class='layout'>
       
         <div class='vertical-navbar' style='height: undefinedvh;'>
